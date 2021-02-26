@@ -1,0 +1,8 @@
+0.6                     //sigma ca
+0.8                     //sigma p2
+0.006                   //sigma phase L1
+0.008                   //sigma phase L2
+450000.0                //ionospheric layer height (m)
+6371000.0               //Earth Equatorial axis (m)
+3.12e-5                 //geomagnetic induction magnitude in the Equator (Tesla) - Used for dipolar model and geomag transformation from PIM
+3.0E12                  //Maximun density of eletrons. Although the value here, we are interpolating as: Ne_max = ( ( (20.0-6.0)*1.0E12 )/( (4.55-1.38)*1.0E18) )*TEC)

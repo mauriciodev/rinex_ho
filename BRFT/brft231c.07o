@@ -1,0 +1,14 @@
+     2.10           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
+teqc  2006Apr5      Rede Brasileira de M20070910 14:59:42UTCPGM / RUN BY / DATE
+brft                                                        MARKER NAME
+41602M002                                                   MARKER NUMBER
+Frank E Marion      NOAA, National Geodetic Survey          OBSERVER / AGENCY
+452719              LEICA GRX1200PRO    2.12                REC # / TYPE / VERS
+868                 LEIAT504        NONE                    ANT # / TYPE
+  4985396.6385 -3954994.7211  -428429.2325                  APPROX POSITION XYZ
+        0.0000        0.0000        0.0000                  ANTENNA: DELTA H/E/N
+     1     1                                                WAVELENGTH FACT L1/2
+     4    L1    C1    L2    P2                              # / TYPES OF OBSERV
+    15.0000                                                 INTERVAL
+  2007     8    19     0     0    0.0000000     GPS         TIME OF FIRST OBS
+                                                            END OF HEADER

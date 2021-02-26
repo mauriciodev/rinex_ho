@@ -1,0 +1,25 @@
+//creating the .o files
+gfortran -c *.f
+g++ -c *.cpp
+
+//Linking .o in the program_name
+g++ -o program_name *.o -lgfortran -static
+
+//The fortran subroutines must be declared in the folowing way:
+extern "C" void sub_name_(int *argumento1, double *arg2, etc,...)
+
+Step 1:
+//Compiling CGM fortran file
+gfortran -c CGM_DLL_Lahey_Fujtsu\cgm_util.f
+
+Step 2:
+//Compiling C++ files
+g++ -c Class_Iono/Class_Iono.cpp
+g++ -c Class_TEC/Class_TEC.cpp
+g++ -c Cycle_Slip/CycleSlip.cpp
+g++ -c FilterCode/FilterCode.cpp
+g++ -c IGRF11/Class_IGRF11.cpp
+g++ -c Rinex_Class/rinex.h
+
+//Linking .o files
+g++ -o rinex_ho *.o -lgfortran -static

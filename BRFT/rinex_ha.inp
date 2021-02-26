@@ -1,0 +1,12 @@
+brft2311.07o             //obs file
+brft2311.07n             //nav file
+brft231c.07o             //new obs file
+brft231_Out              //Name of output files
+1	                 //Save output and log files (yes=1; no=0)
+2		         //0 = Tec from raw pseudorange; 1 = TEC from smothed pseudorange by phase; 2 = TEC from GIM
+CODG2310.07I             //Name of the CODE map: In the case before option "To use CODE map" = 1
+6.898                    //DCB (P1-P2) = receiver bias in ns (nano-segundos): In the case computing TEC from pseudorange 
+P1C1_190807.DCB          //DCB (P1-C1) - P1C1 bias for satellite - Found at: ftp://ftp.unibe.ch/aiub/CODE/
+P1P2_190807.DCB          //DCB (P1-P2) - P1P2 bias for satellites - Found at: ftp://ftp.unibe.ch/aiub/CODE/
+2                        //0 = Dipolar model; 1 = CGM from PIM; 2 = IGRF model
+IGRF11.COF               //Name of the IGRF coefficients
