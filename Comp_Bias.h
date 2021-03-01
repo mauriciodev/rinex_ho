@@ -17,7 +17,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include<dir.h>
+//#include<dir.h>
 #include <sys/stat.h>
 
 #include "CycleSlip.h"
