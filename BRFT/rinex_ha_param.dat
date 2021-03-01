@@ -1,8 +1,0 @@
-0.6                     //sigma ca
-0.8                     //sigma p2
-0.006                   //sigma phase L1
-0.008                   //sigma phase L2
-450000.0                //ionospheric layer height (m)
-6371000.0               //Earth Equatorial axis (m)
-3.12E-05                //geomagnetic induction magnitude in the Equator (Tesla)
-3.0E12                  //Maximun density of eletrons 

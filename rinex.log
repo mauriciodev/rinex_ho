@@ -1,0 +1,42 @@
+RINEX_HO - Program to read the RINEX, compute the TEC
+and correct GPS data from 2nd and 3rd order ionospheric efffects
+
+Author: Haroldo Antonio Marques - 2009
+        Programa de Pos-Graduacao em Ciencias Cartograficas
+        Sao Paulo State University (Universidade Estadual Paulista) - FCT/UNESP
+        R. Roberto simonsen, 305 - Presidente Prudente - SP, Brazil
+        FAPESP Process: 05/03522-1
+
+**********************************************************************
+
+Navigation file: RECF\recf0101.16n
+
+
+Number of OBS with WARNINGS = 0
+
+
+*** Messages ERRORS:
+
+*** Messages WARNINGS:
+
+Observation file: RECF\recf0101.16o
+GIM File: RECF\CODG0100.16I
+ - Version 2.11
+Satellite Sistem: M
+Rinex Type: O
+Rinex Program: teqc  2015Jun23     
+Created by Agency: RBMC                
+
+Reading observation file and applying correction...
+
+Without ephemeris for the satellite: 21 in the ephoc 0 0 9.99988e-011
+Without ephemeris for the satellite: 14 in the ephoc 0 0 9.99988e-011
+Without ephemeris for the satellite: 6 in the ephoc 23 59 45
+Without ephemeris for the satellite: 31 in the ephoc 23 59 45
+*** Error Message in the RINEX file:
+
+*** Messages with WARNINGS in the RINEX file:
+
+
+Process Finished Normally...
+

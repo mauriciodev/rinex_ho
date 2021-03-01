@@ -1,0 +1,255 @@
+# depslib dependency file v1.0
+1513339655 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\main.cpp
+	"rinex_ho.h"
+	"Variable.inc"
+
+1513340196 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\rinex_ho.h
+	<iostream>
+	<ios>
+	<fstream>
+	<iomanip>
+	<cmath>
+	<cstring>
+	<cctype>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	"rinex.h"
+	"Class_TEC.h"
+	"Class_Iono.h"
+	"CycleSlip.h"
+	"Filter_Code.h"
+	"Comp_Bias.h"
+
+1374596508 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\rinex.h
+	<fstream>
+	<iostream>
+	<sstream>
+	<string>
+	<list>
+	"datetime.h"
+
+1359660000 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\datetime.h
+	<iostream>
+
+1378245772 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\class_tec.h
+	<cmath>
+	<iomanip>
+	<iostream>
+	<fstream>
+	<cstring>
+	<cctype>
+	<stdio.h>
+	<stdlib.h>
+	"constant.h"
+
+1367808764 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\constant.h
+	<math.h>
+
+1366998734 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\class_iono.h
+	<cmath>
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<fstream>
+	<stdlib.h>
+	<iomanip>
+	<ios>
+	"Class_IGRF11.h"
+
+1359654316 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\class_igrf11.h
+	<cstdio>
+	<cstdlib>
+	<cstring>
+	<cctype>
+	<cmath>
+
+1367778228 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\cycleslip.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<iostream>
+	"constant.h"
+
+1368198258 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\filter_code.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<iostream>
+	"constant.h"
+
+1513340265 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\comp_bias.h
+	<iomanip>
+	<cmath>
+	<cstring>
+	<cctype>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<dir.h>
+	<sys/stat.h>
+	"CycleSlip.h"
+	"Class_TEC.h"
+	"rinex.h"
+
+1368202294 d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\variable.inc
+
+1321025122 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\rinex.cpp
+	"rinex.h"
+	<iostream>
+	<fstream>
+	<sstream>
+	<iomanip>
+	<string>
+	<limits>
+	<algorithm>
+	<cstring>
+	<cstdlib>
+	<cmath>
+	<cctype>
+	"datetime.h"
+
+1371002256 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\cycleslip.cpp
+	"CycleSlip.h"
+
+1368198202 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\filter_code.cpp
+	"Filter_Code.h"
+
+1378245858 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\class_tec.cpp
+	"Class_TEC.h"
+
+1454080824 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\class_iono.cpp
+	"Class_Iono.h"
+
+1293754820 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\class_igrf11.cpp
+	"Class_IGRF11.h"
+
+1513340260 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\comp_bias.cpp
+	<iostream>
+	<ios>
+	<fstream>
+	"Comp_Bias.h"
+
+1366035814 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\datetime.cpp
+	"datetime.h"
+	<cmath>
+	<iostream>
+	<iomanip>
+
+1453756064 source:d:\haroldo\aplicativos_windows\rinex_ho_codeblocks\rinex_ho.cpp
+	"rinex_ho.h"
+	"Variable.inc"
+
+1614553457 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\class_igrf11.cpp
+	"Class_IGRF11.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\class_igrf11.h
+	<cstdio>
+	<cstdlib>
+	<cstring>
+	<cctype>
+	<cmath>
+
+1614553457 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\class_iono.cpp
+	"Class_Iono.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\class_iono.h
+	<cmath>
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<fstream>
+	<stdlib.h>
+	<iomanip>
+	<ios>
+	"Class_IGRF11.h"
+
+1614553457 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\comp_bias.cpp
+	<iostream>
+	<ios>
+	<fstream>
+	"Comp_Bias.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\comp_bias.h
+	<iomanip>
+	<cmath>
+	<cstring>
+	<cctype>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<dir.h>
+	<sys/stat.h>
+	"CycleSlip.h"
+	"Class_TEC.h"
+	"rinex.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\cycleslip.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<iostream>
+	"constant.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\constant.h
+	<math.h>
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\class_tec.h
+	<cmath>
+	<iomanip>
+	<iostream>
+	<fstream>
+	<cstring>
+	<cctype>
+	<stdio.h>
+	<stdlib.h>
+	"constant.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\rinex.h
+	<fstream>
+	<iostream>
+	<sstream>
+	<string>
+	<list>
+	"datetime.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\datetime.h
+	<iostream>
+
+1614553457 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\cycleslip.cpp
+	"CycleSlip.h"
+
+1614553457 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\datetime.cpp
+	"datetime.h"
+	<cmath>
+	<iostream>
+	<iomanip>
+
+1614553457 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\filter_code.cpp
+	"Filter_Code.h"
+
+1614553457 d:\doutorado_psq\codigo\rinex_ho_codeblocks\filter_code.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<iostream>
+	"constant.h"
+
+1614553457 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\rinex.cpp
+	"rinex.h"
+	<iostream>
+	<fstream>
+	<sstream>
+	<iomanip>
+	<string>
+	<limits>
+	<algorithm>
+	<cstring>
+	<cstdlib>
+	<cmath>
+	<cctype>
+	"datetime.h"
+
+1614553561 source:d:\doutorado_psq\codigo\rinex_ho_codeblocks\class_tec.cpp
+	"Class_TEC.h"
+

@@ -9,7 +9,7 @@
              FCT/UNESP - Presidente Prudente - SP, Brazil
              FAPESP PROCESS: 05/03522-1
 
-    Advisor: Joao Francisco Galera Monico
+    Advisor: João Francisco Galera Monico
              galera@fct.unesp.br
              Departamento de Cartografia
              FCT/UNESP - Presidente Prudente - SP, Brazil
@@ -20,6 +20,8 @@
                  http://www.ngs.noaa.gov/gps-toolbox/rinex.htm
                  The authors would like to thanks CAPES, FAPESP by financial support
     -------------------------------------------------------------------*/
+//c::1304.13, SAH, fix the paths, use just one directory for all *.cpp/*.h files
+
 
 #include <iostream>
 #include <ios>
@@ -29,19 +31,24 @@
 #include <cstring>
 #include <cctype>
 #include <time.h>
-#include <unistd.h>  //must be uncommented for linux compilation
+//#include <unistd.h>  //must be uncommented for linux compilation
 
-//#include <conio.h> //must be commented for linux compilation
+//#include <conio.h> //must be commented for linix compilation
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Rinex_Class/rinex.h"    //class to read and save RINEX (available at: http://www.ngs.noaa.gov/gps-toolbox/rinex.htm)
-#include "Class_TEC/Class_TEC.h"
-#include "Class_Iono/Class_Iono.h"
+//#include "Rinex_Class/rinex.h"    //class to read and save RINEX (available at: http://www.ngs.noaa.gov/gps-toolbox/rinex.htm)
+//#include "Class_TEC/Class_TEC.h"
+//#include "Class_Iono/Class_Iono.h"
+//#include "Cycle_Slip/CycleSlip.h"
+//#include "FilterCode/Filter_Code.h"
 
-#include "Cycle_Slip/CycleSlip.h"
-#include "FilterCode/Filter_Code.h"
-
+#include "rinex.h"    //class to read and save RINEX (available at: http://www.ngs.noaa.gov/gps-toolbox/rinex.htm)
+#include "Class_TEC.h"
+#include "Class_Iono.h"
+#include "CycleSlip.h"
+#include "Filter_Code.h"
+#include "Comp_Bias.h"
 
 //#include ".\Fortran_Class\fortran.h" //Class to mix C/C++ and Fortran (available at: http://arnholm.org/software/index.htm)
 
@@ -53,16 +60,31 @@ using namespace FILTEROBS;
 using namespace CTEC;
 using namespace CIONO;
 
+
+
+
 double TECM[NSAT]={0.0};
 
 double i1m_l1[NSAT]={0.0},i1m_l2[NSAT]={0.0},
        i2m_l1[NSAT]={0.0},i2m_l2[NSAT]={0.0},
        i3m_l1[NSAT]={0.0},i3m_l2[NSAT]={0.0};
 
-void CorrectIono(int numobstype,ObsEpoch currentObsEpoch,SatObsAtEpoch tempSatObsAtEpoch[],
+
+bool Cycle_Slip_Flag=false;
+/*void CorrectIono(int numobstype,ObsEpoch &currentObsEpoch,SatObsAtEpoch tempSatObsAtEpoch[],
                  double I1_L1,double I1_L2,double I2_L1,
                  double I2_L2,double I3_L1,double I3_L2,double ph1[],
-                 double ph2[],double ca[],double p1[],double p2[],int i);
+                 double ph2[],double ca[],double p1[],double p2[],
+                 int pos_currentObsEpoch,int pos_tempSatObsAtEpoch);
+ */
+void CorrectIono(int numobstype,ObsEpoch &currentObsEpoch,SatObsAtEpoch tempSatObsAtEpoch[],
+                 double I1_L1,double I1_L2,double I1_L5,  //not being used
+                 double I2_L1,double I2_L2,double I2_L5,
+                 double I3_L1,double I3_L2,double I3_L5,
+                 double ph1[],double ph2[],double ph5[],   //phase
+                 double ca[],double p1[],double p2[],double c2[],double c5[], //code
+                 int pos_currentObsEpoch,int pos_tempSatObsAtEpoch);
+
 
 void ReadInput(string InpFileName,string &filenameobs,string &filenamenav,string &newobsfile,
                string &outfile,double &X0,double &Y0,double &Z0,double &Mask_Ele,
@@ -72,8 +94,9 @@ void ReadInput(string InpFileName,string &filenameobs,string &filenamenav,string
 int ReadNavFile(PRNBlock  currentPRNBlock[],RinexFile *myFileNav,string filenamenav,
                 int &cont_efe_nav, fstream &log);
 
-void StoreObsVector(int numobstype,ObsEpoch  currentObsEpoch,double ph1[],
-                    double ph2[],double ca[],double p1[],double p2[],int i);
+void StoreObsVector(int numobstype,ObsEpoch &currentObsEpoch,double ph1[],
+                    double ph2[],double ca[],double p1[],double p2[],
+                    double c2[],double c5[],double ph5[],int n_epoch);
 
 void ReadParam(double &sigca,double &sigp2,double &sigph1,
                double &sigph2,double &h_ion,double &R_e,double &B_eq,double &Ne_max);
@@ -83,12 +106,30 @@ void sat_pos_vel(double  tr, double  toe,double  dt, double  a, double  ri0,
 	         double  cus, double  cuc, double  crs, double  crc, double  cis,
        	         double  cic, double  w0, double  wd, double  &x1, double  &y1, double  &z1,
                 double  &dx1, double  &dy1, double  &dz1);
-                
+
+void azelIPP(double staX, double staY, double staZ,
+     double svX, double svY, double svZ,
+     double Re, double htIono,
+     double *az, double *elv, double *dist,
+     double *pplat, double *pplon, double *zp);
+
+int xyz_to_geod ( double a, double finv, double x, double y, double z,
+                  double *dlat, double *dlon, double *h);
+
+
 void Sat_Angle (double lat,double longi,double xs,double ys,double zs,
                 double Xest,double Yest,double Zest,double &Ele, double &Az );
 
 void zera_vetor(double V[], int n);
+void zera_vetor(int V[], int n);
 
+/*typedef struct Mean_Phase_Code{
+  double Last_Diff_Li_Pi;
+  double Mean_Diff_Li_Pi;
+  int Count_Mean;
+}MEAN_PHASE_CODE;
+
+*/
 //---------------------------------------------------------------------------
 void Sat_Angle (double lat,double longi,double xs,double ys,double zs,
                 double Xest,double Yest,double Zest,double &Ele, double &Az )
@@ -113,22 +154,22 @@ void Sat_Angle (double lat,double longi,double xs,double ys,double zs,
  double dx,dy,dz,ro,coslat,coslon,sinlat,sinlon,de,dn,du;
 
 
-  dx = xs - Xest,
-  dy = ys - Yest,
-  dz = zs - Zest,
+  dx = xs - Xest;
+  dy = ys - Yest;
+  dz = zs - Zest;
 
   //satellite-receiver distance
-  ro = sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2)),
+  ro = sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2));
 
   //Local system centered at receiver position
 
-  coslat = cos(lat),
-  coslon = cos(longi),
-  sinlat = sin(lat),
-  sinlon = sin(longi),
+  coslat = cos(lat);
+  coslon = cos(longi);
+  sinlat = sin(lat);
+  sinlon = sin(longi);
 
-  dn = (-1.0*sinlat*coslon*dx) + (-sinlat*sinlon*dy) + (coslat*dz),
-  de = (-sinlon*dx)+(coslon*dy),
+  dn = (-1.0*sinlat*coslon*dx) + (-sinlat*sinlon*dy) + (coslat*dz);
+  de = (-sinlon*dx)+(coslon*dy);
   du = (coslat*coslon*dx) + (coslat*sinlon*dy) + (sinlat*dz);
 
   //Local normalized vector
@@ -160,7 +201,7 @@ return;
 //---------------------------------------------------------------------------
 void zera_vetor(double V[], int n)
 {/*-------------------------------------------------------------------
-    Purpose: Start array  
+    Purpose: Start array
     -------------------------------------------------------------------
     Authors: Haroldo Antonio Marques
              Programa de Pos-Graduacao em Ciencias Cartograficas
@@ -169,10 +210,27 @@ void zera_vetor(double V[], int n)
 
     Date: July of 2010
     -------------------------------------------------------------------
-    Observation: 
+    Observation:
     -------------------------------------------------------------------*/
 
  for(int i=0;i<n;i++) V[i] = 0.0;
+}
+//---------------------------------------------------------------------------
+void zera_vetor(int V[], int n)
+{/*-------------------------------------------------------------------
+    Purpose: Start array
+    -------------------------------------------------------------------
+    Authors: Haroldo Antonio Marques
+             Programa de Pos-Graduacao em Ciencias Cartograficas
+             FCT/UNESP - Presidente Prudente - SP
+             FAPESP PROCESS: 05/03522-1
+
+    Date: July of 2010
+    -------------------------------------------------------------------
+    Observation:
+    -------------------------------------------------------------------*/
+
+ for(int i=0;i<n;i++) V[i] = 0;
 }
 //---------------------------------------------------------------------------
 void ReadInput(string InpFileName,string &filenameobs,string &filenamenav,string &newobsfile,
@@ -203,8 +261,8 @@ char temp[500]={"\0"},temp1[500]={"\0"};
 
     if(inpfile.fail() )
     {
-        cout<<"It was not possible to open the rinex_ha.inp file"<<endl;
-        system("pause");
+        cout<<"It was not possible to open the file: "<<InpFileName.c_str()<<endl;
+        getchar();
         exit(-1);
     }//if
 
@@ -285,7 +343,7 @@ void ReadParam(double &sigca,double &sigp2,double &sigph1,
 
     Date: July of 2010
     -------------------------------------------------------------------
-    Observation: 
+    Observation:
     -------------------------------------------------------------------*/
 char temp[500]={"\0"};
 
@@ -295,7 +353,7 @@ char temp[500]={"\0"};
     if(fileparam.fail() )
     {
         cout<<"It was not possible to open the rinex_ha_param.dat file"<<endl;
-        system("pause");
+        getchar();
         exit(-1);
     }//if
 
@@ -327,19 +385,22 @@ char temp[500]={"\0"};
     fileparam.getline(temp,500);
     sscanf(temp,"%lf",&B_eq);
 
-    //Electron density maximum 
+    //Electron density maximum
     fileparam.getline(temp,500);
     sscanf(temp,"%lf",&Ne_max);
 
 return;
 }
 //---------------------------------------------------------------------------
-void CorrectIono(int numobstype,ObsEpoch currentObsEpoch,SatObsAtEpoch tempSatObsAtEpoch[],
-                 double I1_L1,double I1_L2,double I2_L1,
-                 double I2_L2,double I3_L1,double I3_L2,double ph1[],
-                 double ph2[],double ca[],double p1[],double p2[],int i)
+void CorrectIono(int numobstype,ObsEpoch &currentObsEpoch,SatObsAtEpoch tempSatObsAtEpoch[],
+                 double I1_L1,double I1_L2,double I1_L5,  //not being used
+                 double I2_L1,double I2_L2,double I2_L5,
+                 double I3_L1,double I3_L2,double I3_L5,
+                 double ph1[],double ph2[],double ph5[],   //phase
+                 double ca[],double p1[],double p2[],double c2[],double c5[], //code
+                 int pos_currentObsEpoch,int pos_tempSatObsAtEpoch)
 {/*-------------------------------------------------------------------
-    Purpose: Correct GPS observable from 2nd and 3rd order ionospheric effects  
+    Purpose: Correct GPS observable from 2nd and 3rd order ionospheric effects
     -------------------------------------------------------------------
     Input:
 
@@ -352,139 +413,213 @@ void CorrectIono(int numobstype,ObsEpoch currentObsEpoch,SatObsAtEpoch tempSatOb
 
     Date: July of 2010
     -------------------------------------------------------------------
-    Observation: 
+    Observation: Corrections for L5 must be implemented
     -------------------------------------------------------------------*/
 
-    double obser(0);
+    double corrected_obs(0);
     double f1 = 1575420000.0;   //L1 frequency - Hz
     double f2 = 1227600000.0;   //L2 frequency - Hz
+    double f5 = 1176450000.0;    //L5 frequency - Hz
+
     double c = 299792458.0;     //velocity of light
     double lamb_l1 = c/f1;      //wavelenght - L1
     double lamb_l2 = c/f2;      //wavelenght - L2
+    double lamb_l5 = c/f5;      //wavelenght - L2
 
     for( int j = 0; j < numobstype; j++ )
     {
             //name associated to each type of observation
-            int var = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
+            int var = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
 
 
             switch(var)
-            {   /* In the rinex.h fiel you can find enum variable
-                   enum OBSTYPE { NOOBS = 0, L1 = 1, L2 = 2, C1 = 3, P1 = 4, P2 = 5,
-                                  D1 = 6, D2 = 7, T1 = 8, T2= 9, S1 = 10, S2 = 11 };
-                */
-                case 1: //Phase - L1
-                        if(ph1[i]!=0.0) 
-                           obser = ph1[i] + ((I2_L1/2.0) + (I3_L1/3.0))/lamb_l1;
-                        else obser = ph1[i];
+            {
+                /* In the rinex.h file you can find enum variable (It was changed from original version by Marques, H. A.)
+                enum OBSTYPE { NOOBS = 0, L1 = 1, L2 = 2, C1 = 3, P1 = 4, P2 = 5,
+                               C2 = 6, D1 = 7, D2 = 8, T1 = 9, T2= 10, S1 = 11, S2 = 12,
+                               L5 =13, C5 = 14, D5 = 15, S5 = 16  };
+              */
 
-                        tempSatObsAtEpoch[i].obsList[j].observation = obser;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                case 1: //Phase - L1
+                        if(ph1[pos_tempSatObsAtEpoch]!=0.0)
+                           corrected_obs = ph1[pos_tempSatObsAtEpoch] + ((I2_L1/2.0) + (I3_L1/3.0))/lamb_l1;
+                        else corrected_obs = ph1[pos_tempSatObsAtEpoch];
+
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
                 case 2: //Phase - L2
-                        if(ph2[i]!=0.0)
-                          obser = ph2[i] + ((I2_L2/2.0) + (I3_L2/3.0))/lamb_l2;
-                        else obser = ph2[i];
+                        if(ph2[pos_tempSatObsAtEpoch]!=0.0)
+                          corrected_obs = ph2[pos_tempSatObsAtEpoch] + ((I2_L2/2.0) + (I3_L2/3.0))/lamb_l2;
+                        else corrected_obs = ph2[pos_tempSatObsAtEpoch];
 
-                        tempSatObsAtEpoch[i].obsList[j].observation = obser;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
                 case 3: //CA
-                        if(ca[i]!=0.0)
-                           obser = ca[i] - I2_L1 - I3_L1;
-                        else obser = ca[i];
+                        if(ca[pos_tempSatObsAtEpoch]!=0.0)
+                           corrected_obs = ca[pos_tempSatObsAtEpoch] - I2_L1 - I3_L1;
+                        else corrected_obs = ca[pos_tempSatObsAtEpoch];
 
-                        tempSatObsAtEpoch[i].obsList[j].observation = obser;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
                 case 4: //P1
-                        if(p1[i]!=0.0)
-                          obser = p1[i] - I2_L1 - I3_L1;
-                        else obser = p1[i];
+                        if(p1[pos_tempSatObsAtEpoch]!=0.0)
+                          corrected_obs = p1[pos_tempSatObsAtEpoch] - I2_L1 - I3_L1;
+                        else corrected_obs = p1[pos_tempSatObsAtEpoch];
 
-                        tempSatObsAtEpoch[i].obsList[j].observation = obser;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
                 case 5: //P2
-                        if(p2[i]!=0.0) 
-                          obser = p2[i] - I2_L2 - I3_L2;
-                        else obser = p2[i];
+                        if(p2[pos_tempSatObsAtEpoch]!=0.0)
+                          corrected_obs = p2[pos_tempSatObsAtEpoch] - I2_L2 - I3_L2;
+                        else corrected_obs = p2[pos_tempSatObsAtEpoch];
 
-                        tempSatObsAtEpoch[i].obsList[j].observation = obser;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
-                case 6: tempSatObsAtEpoch[i].obsList[j].observation = currentObsEpoch.getSatListElement(i).obsList[j].observation;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                case 6:  //C2
+                        if(c2[pos_tempSatObsAtEpoch]!=0.0)
+                          corrected_obs = c2[pos_tempSatObsAtEpoch] - I2_L2 - I3_L2;
+                        else corrected_obs = c2[pos_tempSatObsAtEpoch];
+
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
-                case 7: tempSatObsAtEpoch[i].obsList[j].observation = currentObsEpoch.getSatListElement(i).obsList[j].observation;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                case 7: //D1
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
-                case 8: tempSatObsAtEpoch[i].obsList[j].observation = currentObsEpoch.getSatListElement(i).obsList[j].observation;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                case 8: //D2
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
-                case 9: tempSatObsAtEpoch[i].obsList[j].observation = currentObsEpoch.getSatListElement(i).obsList[j].observation;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                case 9: //T1
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
-                case 10: tempSatObsAtEpoch[i].obsList[j].observation = currentObsEpoch.getSatListElement(i).obsList[j].observation;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+                case 10://T2
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
-               case 11: tempSatObsAtEpoch[i].obsList[j].observation = currentObsEpoch.getSatListElement(i).obsList[j].observation;
-                        tempSatObsAtEpoch[i].obsList[j].obsPresent = currentObsEpoch.getSatListElement(i).obsList[j].obsPresent;;
-                        tempSatObsAtEpoch[i].obsList[j].obsType = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
-                        tempSatObsAtEpoch[i].satCode = currentObsEpoch.getSatListElement(i).satCode;
-                        tempSatObsAtEpoch[i].satNum = currentObsEpoch.getSatListElement(i).satNum;
-                        tempSatObsAtEpoch[i].obsList[j].LLI = currentObsEpoch.getSatListElement(i).obsList[j].LLI;
-                        tempSatObsAtEpoch[i].obsList[j].sigStrength = currentObsEpoch.getSatListElement(i).obsList[j].sigStrength;
+               case 11: //S1
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
+                        break;
+                case 12: //S2
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
+                        break;
+                case 13:  //Phase - L5
+                        if(ph5[pos_tempSatObsAtEpoch]!=0.0)
+                        {  printf("To be imlemented for L5\n");
+                         //corrected_obs = ph5[pos_tempSatObsAtEpoch] + ((I2_L5/2.0) + (I3_L5/3.0))/lamb_l5;
+                        }
+                        else corrected_obs = ph5[pos_tempSatObsAtEpoch];
+
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
+
+                        break;
+                case 14:  //C5
+                        if(c5[pos_tempSatObsAtEpoch]!=0.0)
+                        {  printf("To be imlemented for L5\n");
+                          // corrected_obs = c5[pos_tempSatObsAtEpoch] - I2_L5 - I3_L5;
+                        }
+                        else corrected_obs = c5[pos_tempSatObsAtEpoch];
+
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = corrected_obs;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
+                        break;
+                  case 15: //D5
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
+                        break;
+                   case 16: //S5
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].observation = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].observation;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsPresent = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsPresent;;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].obsType = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].obsType;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satCode = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satCode;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].satNum = currentObsEpoch.getSatListElement(pos_currentObsEpoch).satNum;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].LLI = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].LLI;
+                        tempSatObsAtEpoch[pos_tempSatObsAtEpoch].obsList[j].sigStrength = currentObsEpoch.getSatListElement(pos_currentObsEpoch).obsList[j].sigStrength;
                         break;
 
                 default: break;
@@ -495,14 +630,15 @@ void CorrectIono(int numobstype,ObsEpoch currentObsEpoch,SatObsAtEpoch tempSatOb
     return;
 }
 //---------------------------------------------------------------------------
-void StoreObsVector(int numobstype,ObsEpoch  currentObsEpoch,double ph1[],
-                    double ph2[],double ca[],double p1[],double p2[],int i)
+void StoreObsVector(int numobstype,ObsEpoch &currentObsEpoch,double ph1[],
+                    double ph2[],double ca[],double p1[],double p2[],
+                    double c2[],double c5[],double ph5[],int n_epoch)
 {/*-------------------------------------------------------------------
     Purpose: store observables from currentObsEpoch in arrays
     -------------------------------------------------------------------
     Input: numobstype - number of obs type
            currentObsEpoch - object from class ObsEpoch
-           i - number of epoch to be extracted data
+           n_epoch - number of epoch to be extracted data
 
     Output: ph1, ph2, ca, p2 - arrays with observables
     -------------------------------------------------------------------
@@ -513,7 +649,7 @@ void StoreObsVector(int numobstype,ObsEpoch  currentObsEpoch,double ph1[],
 
     Date: July of 2010
     -------------------------------------------------------------------
-    Observation: 
+    Observation:
     -------------------------------------------------------------------*/
 
     for( int j = 0; j < numobstype; j++ )
@@ -522,21 +658,36 @@ void StoreObsVector(int numobstype,ObsEpoch  currentObsEpoch,double ph1[],
         {
             cout << endl;
         }
-       if ( currentObsEpoch.getSatListElement(i).obsList[ j ].obsPresent ) //Check if available observable
-        {            
-            int var = currentObsEpoch.getSatListElement(i).obsList[j].obsType;
+       if ( currentObsEpoch.getSatListElement(n_epoch).obsList[ j ].obsPresent ) //Check if available observable
+        {
+            int var = currentObsEpoch.getSatListElement(n_epoch).obsList[j].obsType;
 
             switch(var)
-            {   /* In the rinex.h file you can find enum variable
-                   enum OBSTYPE { NOOBS = 0, L1 = 1, L2 = 2, C1 = 3, P1 = 4, P2 = 5,
-                                  D1 = 6, D2 = 7, T1 = 8, T2= 9, S1 = 10, S2 = 11 };
-                */
-                case 1: ph1[i] = currentObsEpoch.getSatListElement(i).obsList[j].observation;   break;
-                case 2: ph2[i] = currentObsEpoch.getSatListElement(i).obsList[j].observation;   break;
-                case 3: ca[i] = currentObsEpoch.getSatListElement(i).obsList[j].observation;    break;
-                case 4: p1[i] = currentObsEpoch.getSatListElement(i).obsList[j].observation;    break;
-                case 5: p2[i] = currentObsEpoch.getSatListElement(i).obsList[j].observation;    break;
+            { /* In the rinex.h file you can find enum variable
+                enum OBSTYPE { NOOBS = 0, L1 = 1, L2 = 2, C1 = 3, P1 = 4, P2 = 5,
+                               C2 = 6, D1 = 7, D2 = 8, T1 = 9, T2= 10, S1 = 11, S2 = 12,
+                               L5 =13, C5 = 14, D5 = 15, S5 = 16  };
+              */
+                case 1: ph1[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;   break;
+                case 2: ph2[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;   break;
+                case 3: ca[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+                case 4: p1[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+                case 5: p2[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+                case 6: c2[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+
+               // case 7: dopp1[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+               // case 8: dopp2[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+               // case 11: snr1[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+               // case 12: snr2[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+
+                case 13: ph5[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+                case 14: c5[n_epoch] = currentObsEpoch.getSatListElement(n_epoch).obsList[j].observation;    break;
+
                 default: break;
+
+
+
+
             }//switch
          }//if
     }//for
@@ -545,7 +696,7 @@ void StoreObsVector(int numobstype,ObsEpoch  currentObsEpoch,double ph1[],
 int ReadNavFile(PRNBlock  currentPRNBlock[],RinexFile *myFileNav,string filenamenav,
                 int &cont_efe_nav, fstream &log)
 {/*-------------------------------------------------------------------
-    Purpose: Read broadcast orbit file  
+    Purpose: Read broadcast orbit file
     -------------------------------------------------------------------
     Input:
 
@@ -558,7 +709,7 @@ int ReadNavFile(PRNBlock  currentPRNBlock[],RinexFile *myFileNav,string filename
 
     Date: July of 2010
     -------------------------------------------------------------------
-    Observation: 
+    Observation:
     -------------------------------------------------------------------*/
 string theNavFileType;
 
@@ -580,7 +731,7 @@ string theNavFileType;
         log << "Error opening file: " << filenamenav << endl
             << "Rinex File\"Exception:\" " << endl << openExcep.getMessage() << endl
             << "Exiting program..." << endl << endl;
-     
+
         exit (-1);
     }//catch
 
@@ -615,9 +766,9 @@ string theNavFileType;
         //read the PRN Blocks
         try
         {   cont_efe_nav=0; //number of ephemeris block
-            
+
             while( mynav.readPRNBlock( currentPRNBlock[cont_efe_nav] ) != 0 )
-            {                
+            {
                 cont_efe_nav++;
             }//while
         }//try
@@ -698,6 +849,12 @@ void sat_pos_vel( double  tr, double  toe,double  dt, double  a, double  ri0,
     pi = 4.0*atan(1.0);
     dt = 0.0;
     dt = tr - toe;
+
+    //Accounting for begning or end of week crossovers
+    if(dt > 302400.0)
+      dt -= 604800.0;
+    else if (dt < -302400)
+      dt += 604800.0;
 
     //semi-minor axis
     b = a;
@@ -803,3 +960,183 @@ void sat_pos_vel( double  tr, double  toe,double  dt, double  a, double  ri0,
 return;
 } //satpove
 //---------------------------------------------------------------------------
+
+void azelIPP(double staX, double staY, double staZ,
+     double svX, double svY, double svZ,
+     double Re, double htIono,
+     double *az, double *elv, double *dist,
+     double *pplat, double *pplon, double *zp)
+{
+//   Input:
+//   staX,staY,staZ -- site coordinates in meters
+//   svX,svY,svZ -- satellite coordinates in meters
+//   Re, htIono -- Mean Radius of the Earth (6371 km) & height on Iono shell (450 km).
+//   Output:
+//   az, elv, dist -- azimuth, elevation in radians (dist in meters)
+//   pplat, pplon -- geocentric lat.long of IPP (in degrees)
+//   zp -- z' = zenith angle at the IPP (in radians).
+//
+//   Author: S. Hilla,  13 Feb 2013
+//
+
+// const double DTR  = 0.0174532925199433;
+   double rlat, rlon, srlon, crlon, srlat, crlat, dx, dy, dz, du, dv, dw, ppii;
+   double dlat, dlon, elliph, angleA, c, b, dipp, up, vp, wp;
+   double xipp, yipp, zipp, dequa, DTR;
+   double geod_pp_lat, geod_pp_lon, geod_pp_hgt, mapfunc;
+   int iJMJ;
+
+   ppii = (atan(1.0)) * 4.0; // compute a double precision PI
+   DTR = ppii/180.0;
+
+   xyz_to_geod( 6378137.0, 298.257222101, staX, staY, staZ,
+                &dlat, &dlon, &elliph);
+
+   rlat = dlat * DTR;
+   rlon = dlon * DTR;
+
+//   rlat = rlat - ppii/2.0;
+//   rlon = rlon - ppii;
+
+   srlat = sin(rlat);
+   crlat = cos(rlat);
+   srlon = sin(rlon);
+   crlon = cos(rlon);
+
+   dx = svX - staX;
+   dy = svY - staY;
+   dz = svZ - staZ;
+
+   du = -1.0*srlat*crlon*dx - srlat*srlon*dy + crlat*dz;
+   dv = -1.0*srlon*dx + crlon*dy;
+   dw = crlat*crlon*dx + crlat*srlon*dy + srlat*dz;
+
+   *dist = sqrt( du*du + dv*dv + dw*dw );
+
+   *az = atan2(dv,du);
+   *elv = asin( (dw)/(*dist) );
+
+   *zp = asin( (Re/(Re+htIono))*sin(ppii/2.0 - *elv) );
+
+   // compute the distance from receiver to IPP
+   angleA = ppii/2.0 - *zp - *elv;
+   c = Re;
+   b = Re + htIono;
+   dipp = sqrt( b*b + c*c - 2.0*b*c*cos(angleA) );
+
+   // compute uvw for IPP
+   up = dipp * cos(*elv) * cos(*az);
+   vp = dipp * cos(*elv) * sin(*az);
+   wp = dipp * sin(*elv);
+
+   // convert uvw for IPP to dx,dy,dz (reverse of 4.68-4.70, Geometric Geodesy).
+   dx = -1.0*srlat*crlon*up - srlon*vp + crlat*crlon*wp;
+   dy = -1.0*srlat*srlon*up + crlon*vp + crlat*srlon*wp;
+   dz = crlat*up + srlat*wp;
+
+   // compute XYZ for IPP
+   xipp = staX + dx;
+   yipp = staY + dy;
+   zipp = staZ + dz;
+
+   // compute GEODETIC latitude and longitude for IPP
+   xyz_to_geod( 6378137.0, 298.257222101, xipp, yipp, zipp,
+                &geod_pp_lat, &geod_pp_lon, &geod_pp_hgt);
+
+// cout << "^^^^^ from azelIPP ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+// cout << "PP lat  (deg)" << setw(30) << setprecision(15) << geod_pp_lat << endl;
+// cout << "PP long (deg)" << setw(30) << setprecision(15) << geod_pp_lon << endl;
+// cout << "PP hgt  (m)  " << setw(30) << setprecision(5)  << geod_pp_hgt << endl;
+// cout << "azimuth (rad)" << setw(30) << setprecision(15)  << *az << endl;
+// cout << "azimuth (deg)" << setw(30) << setprecision(15)  << *az * (180.0/ppii) << endl;
+// cout << "elev    (deg)" << setw(30) << setprecision(15)  << *elv * (180.0/ppii) << endl;
+// cout << "SV xyz  (m)" << setw(16) << setprecision(4) << svX << " "
+//                       << setw(16) << setprecision(4) << svY << " "
+//                       << setw(16) << setprecision(4) << svZ << endl;
+// cout << "zp,htIon,Re" << setw(16) << setprecision(9) << *zp * (180.0/ppii) << " "
+//                       << setw(16) << setprecision(4) << htIono << " "
+//                       << setw(16) << setprecision(4) << Re  << endl;
+// cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+
+   // compute geocentric latitude and longitude for IPP
+   dequa = sqrt( xipp*xipp + yipp*yipp);
+   *pplat = atan2( zipp, dequa);
+   *pplon = atan2( yipp, xipp);
+
+   *pplat = *pplat * (180.0/ppii);  // convert rad to deg
+   *pplon = *pplon * (180.0/ppii);
+}
+
+/*---------------------------------------------------------------------*/
+
+ int xyz_to_geod ( double a, double finv, double x, double y, double z,
+                   double *dlat, double *dlon, double *h)
+
+   /********************************************************************|
+   | void xyz_to_geod() converts geocentric Cartesian coordinates into
+   |                    geodetic latitude, longitude, and ellipsoid
+   |                    height ( in decimal degrees and ?????? ) given
+   |                    the semi-major axis "a" and the inverse of the
+   |                    flattening "finv".
+   |
+   |                    The units of h will be the same as the units of
+   |                    x,y,z, and a (m, km, miles, feet, etc.).
+   |
+   |   Original Fortran subroutine TOGEOD by C. Goad, 1987.
+   |   Converted to C function by S. Hilla, July 1992.
+   |********************************************************************/
+ {
+   double rtd, esq, oneesq, psq, p, r;
+   double tolsq = 1.0e-10, sinlat, coslat, N, dp, dz;
+   int  maxit = 10, iter;
+
+   /* compute radians-to-degrees factor */
+       rtd = 180.0 / PI;                     /* PI is in consts.h */
+   /* compute square of eccentricity */
+       esq = (2.0 - 1.0/finv)/finv;
+       oneesq = 1.0 - esq;
+   /* direct calculation of longitude */
+       *dlon = ( atan2(y,x) ) * rtd;
+       if ( *dlon < 0.0 ) *dlon = *dlon + 360.0;
+   /* first guesses */
+   /* p is distance from the spin axis */
+       psq = (x*x) + (y*y);
+       p = sqrt(psq);
+   /* r is distance from origin (0,0,0) */
+       r = sqrt( psq + (z*z) );
+       sinlat = z/r;
+       *dlat = asin(sinlat);
+   /* initial value of height = distance from origin minus approximate */
+   /* distance from origin to surface of ellipsoid */
+       *h = r - a*(1.0 - ( (sinlat*sinlat)/finv ) );
+   /* iterate */
+       for ( iter=1; iter <= maxit; ++iter )
+       {
+         sinlat = sin(*dlat);
+         coslat = cos(*dlat);
+      /* compute radius of curvature in prime vertical direction */
+         N = a / sqrt( 1.0 - esq*sinlat*sinlat );
+      /* compute residuals in p and z */
+         dp = p - ( (N + *h)*coslat );
+         dz = z - (N*oneesq + *h)*sinlat;
+      /* update height and latitude */
+         *h = *h + (sinlat*dz + coslat*dp);
+         *dlat = *dlat + (coslat*dz - sinlat*dp)/(N + *h);
+      /* test for convergence */
+         if (  ( dp*dp + dz*dz ) < tolsq )
+          {
+            *dlat = *dlat * rtd;
+            return(0);
+          }
+       }       /* end of for loop */
+
+   /* Not Converged -- Warn user */
+       cout << " Problem in xyz_to_geod, did not " <<
+       "converge in " << maxit << " iterations." << endl;
+       return (1);
+
+ }  /*  end of function xyz_to_geod  */
+
+/*---------------------------------------------------------------------*/
+
+

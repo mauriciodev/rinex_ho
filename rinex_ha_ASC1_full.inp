@@ -1,0 +1,14 @@
+ASC1/asc11030.03o            		  //obs file
+ASC1/brdc1030.03n             		  //nav file
+ASC1/asc1103C.03o             		  //new obs file
+ASC1/asc1103_Out              		  //Name of output files
+4985393.5194 -3954993.4231 -428426.6722   //Receiver coordinates (if 0.0 => Try to read coordinates from RINEX)
+10                                        //Elevation Mask (means that observables under this mask won't be corrected)   
+1	                 		  //Save output and log files (yes=1; no=0)
+1		         		  //0 = Tec from raw pseudorange; 1 = TEC from smothed pseudorange by phase; 2 = TEC from GIM;3 = TEC from carrier levelled by phase
+ASC1/CODG2310.07I             		  //Name of the CODE map: In the case before option "To use CODE map" = 1
+6.898                    		  //DCB (P1-P2) = receiver bias in ns (nano-segundos): In the case computing TEC from pseudorange 
+ASC1/P1C10304.DCB          		  //DCB (P1-C1) - P1C1 bias for satellite - Found at: ftp://ftp.unibe.ch/aiub/CODE/
+ASC1/P1P20304.DCB          		  //DCB (P1-P2) - P1P2 bias for satellites - Found at: ftp://ftp.unibe.ch/aiub/CODE/
+2                        		  //0 = Dipolar model; 1 = CGM from PIM; 2 = IGRF model
+ASC1/IGRF11.COF               		  //Name of the IGRF coefficients
