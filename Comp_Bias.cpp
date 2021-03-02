@@ -560,7 +560,11 @@ bool directory_exists(string pathname)
 //---------------------------------------------------------------------------
 int Create_Dir(string Directory)
 {
-    int check = mkdir(Directory.c_str(),0777);
+    #if defined(_WIN32)
+        int check = mkdir(Directory.c_str());
+    #else
+        int check = mkdir(Directory.c_str(),0777);
+    #endif
 
     if (!check)
     {
