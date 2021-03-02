@@ -45,8 +45,13 @@ using namespace std;
 using namespace NGSdatetime;
 
 //======================== constants =====================================
-   //const int LONG_MAX = 10000;
-   //const int LONG_MIN = 100;
+#if defined(_WIN32)
+
+#else
+    const int LONG_MAX = 10000;
+    const int LONG_MIN = 100;
+#endif
+
    const unsigned short   MAXOBSHEADERRECTYPES = 20;
    const unsigned short   MAXNAVHEADERRECTYPES =  8;
    const unsigned short   MAXGLONAVHEADERRECTYPES = 6;

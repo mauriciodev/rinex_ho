@@ -9,7 +9,7 @@
              FCT/UNESP - Presidente Prudente - SP, Brazil
              FAPESP PROCESS: 05/03522-1
 
-    Advisor: Jo„o Francisco Galera Monico
+    Advisor: Jo√£o Francisco Galera Monico
              galera@fct.unesp.br
              Departamento de Cartografia
              FCT/UNESP - Presidente Prudente - SP, Brazil
@@ -39,7 +39,7 @@
 int main(int argc, char* argv[]) {
 
 //    #include "Include/Variable.inc"
-    #include "Variable.inc"
+    #include "Variable.h"
     string SatCode;
     int Isat[NSAT]={0},NS,Ns_temp(0);
     int count_sat_out(0),Pos_GPS_CurrObs[NSAT]={0};

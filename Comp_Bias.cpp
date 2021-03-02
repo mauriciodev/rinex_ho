@@ -560,7 +560,11 @@ bool directory_exists(string pathname)
 //---------------------------------------------------------------------------
 int Create_Dir(string Directory)
 {
-    int check = mkdir(Directory.c_str());
+    #if defined(_WIN32)
+        int check = mkdir(Directory.c_str());
+    #else
+        int check = mkdir(Directory.c_str(),0777);
+    #endif
 
     if (!check)
     {
@@ -578,138 +582,138 @@ int Create_Dir(string Directory)
 int OpenPRNFile()
 {
 
-   if(! directory_exists(".\\PhaseBias"))
-        Create_Dir(".\\PhaseBias");
+   if(! directory_exists("./PhaseBias"))
+        Create_Dir("./PhaseBias");
 
 
-  if ((PRN1 = fopen(".\\PhaseBias\\PRN1.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN1.dat");
+  if ((PRN1 = fopen("./PhaseBias/PRN1.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN1.dat");
         exit (-1);
    }//if
-   if ((PRN2 = fopen(".\\PhaseBias\\PRN2.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN2.dat");
+   if ((PRN2 = fopen("./PhaseBias/PRN2.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN2.dat");
         exit (-1);
    }//if
-   if ((PRN3 = fopen(".\\PhaseBias\\PRN3.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN3.dat");
+   if ((PRN3 = fopen("./PhaseBias/PRN3.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN3.dat");
         exit (-1);
    }//if
-   if ((PRN4 = fopen(".\\PhaseBias\\PRN4.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN4.dat");
+   if ((PRN4 = fopen("./PhaseBias/PRN4.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN4.dat");
         exit (-1);
    }//if
 
-   if ((PRN5 = fopen(".\\PhaseBias\\PRN5.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN5.dat");
+   if ((PRN5 = fopen("./PhaseBias/PRN5.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN5.dat");
         exit (-1);
    }//if
-   if ((PRN6 = fopen(".\\PhaseBias\\PRN6.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN6.dat");
+   if ((PRN6 = fopen("./PhaseBias/PRN6.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN6.dat");
         exit (-1);
    }//if
-   if ((PRN7 = fopen(".\\PhaseBias\\PRN7.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN7.dat");
+   if ((PRN7 = fopen("./PhaseBias/PRN7.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN7.dat");
         exit (-1);
    }//if
-   if ((PRN8 = fopen(".\\PhaseBias\\PRN8.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN8.dat");
+   if ((PRN8 = fopen("./PhaseBias/PRN8.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN8.dat");
         exit (-1);
    }//if
-   if ((PRN9 = fopen(".\\PhaseBias\\PRN9.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN9.dat");
+   if ((PRN9 = fopen("./PhaseBias/PRN9.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN9.dat");
         exit (-1);
    }//if
-   if ((PRN10 = fopen(".\\PhaseBias\\PRN10.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN10.dat");
+   if ((PRN10 = fopen("./PhaseBias/PRN10.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN10.dat");
         exit (-1);
    }//if
-   if ((PRN11 = fopen(".\\PhaseBias\\PRN11.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN11.dat");
+   if ((PRN11 = fopen("./PhaseBias/PRN11.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN11.dat");
         exit (-1);
    }//if
-   if ((PRN12 = fopen(".\\PhaseBias\\PRN12.dat", "w+"))== NULL) {
-           fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN12.dat");
+   if ((PRN12 = fopen("./PhaseBias/PRN12.dat", "w+"))== NULL) {
+           fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN12.dat");
            exit (-1);
    }//if
-   if ((PRN13 = fopen(".\\PhaseBias\\PRN13.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN13.dat");
+   if ((PRN13 = fopen("./PhaseBias/PRN13.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN13.dat");
         exit (-1);
    }//if
-   if ((PRN14 = fopen(".\\PhaseBias\\PRN14.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN14.dat");
+   if ((PRN14 = fopen("./PhaseBias/PRN14.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN14.dat");
         exit (-1);
    }//if
-   if ((PRN15 = fopen(".\\PhaseBias\\PRN15.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN15.dat");
+   if ((PRN15 = fopen("./PhaseBias/PRN15.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN15.dat");
         exit (-1);
    }//if
-   if ((PRN16 = fopen(".\\PhaseBias\\PRN16.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN16.dat");
+   if ((PRN16 = fopen("./PhaseBias/PRN16.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN16.dat");
         exit (-1);
    }//if
-   if ((PRN17 = fopen(".\\PhaseBias\\PRN17.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN17.dat");
+   if ((PRN17 = fopen("./PhaseBias/PRN17.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN17.dat");
         exit (-1);
    }//if
-   if ((PRN18 = fopen(".\\PhaseBias\\PRN18.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN18.dat");
+   if ((PRN18 = fopen("./PhaseBias/PRN18.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN18.dat");
         exit (-1);
    }//if
-   if ((PRN19 = fopen(".\\PhaseBias\\PRN19.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN19.dat");
+   if ((PRN19 = fopen("./PhaseBias/PRN19.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN19.dat");
         exit (-1);
    }//if
-   if ((PRN20 = fopen(".\\PhaseBias\\PRN20.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN20.dat");
+   if ((PRN20 = fopen("./PhaseBias/PRN20.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN20.dat");
         exit (-1);
    }//if
-   if ((PRN21 = fopen(".\\PhaseBias\\PRN21.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN21.dat");
+   if ((PRN21 = fopen("./PhaseBias/PRN21.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN21.dat");
         exit (-1);
    }//if
-   if ((PRN22 = fopen(".\\PhaseBias\\PRN22.dat", "w+"))== NULL) {
-           fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN22.dat");
+   if ((PRN22 = fopen("./PhaseBias/PRN22.dat", "w+"))== NULL) {
+           fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN22.dat");
            exit (-1);
    }//if
-   if ((PRN23 = fopen(".\\PhaseBias\\PRN23.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN23.dat");
+   if ((PRN23 = fopen("./PhaseBias/PRN23.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN23.dat");
         exit (-1);
    }//if
-   if ((PRN24 = fopen(".\\PhaseBias\\PRN24.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN24.dat");
+   if ((PRN24 = fopen("./PhaseBias/PRN24.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN24.dat");
         exit (-1);
    }//if
 
-   if ((PRN25 = fopen(".\\PhaseBias\\PRN25.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN25.dat");
+   if ((PRN25 = fopen("./PhaseBias/PRN25.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN25.dat");
         exit (-1);
    }//if
-   if ((PRN26 = fopen(".\\PhaseBias\\PRN26.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN26.dat");
+   if ((PRN26 = fopen("./PhaseBias/PRN26.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN26.dat");
         exit (-1);
    }//if
-   if ((PRN27 = fopen(".\\PhaseBias\\PRN27.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN27.dat");
+   if ((PRN27 = fopen("./PhaseBias/PRN27.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN27.dat");
         exit (-1);
    }//if
-   if ((PRN28 = fopen(".\\PhaseBias\\PRN28.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN28.dat");
+   if ((PRN28 = fopen("./PhaseBias/PRN28.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN28.dat");
         exit (-1);
    }//if
-   if ((PRN29 = fopen(".\\PhaseBias\\PRN29.dat", "w+"))== NULL) {
-        fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN29.dat");
+   if ((PRN29 = fopen("./PhaseBias/PRN29.dat", "w+"))== NULL) {
+        fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN29.dat");
         exit (-1);
    }//if
-   if ((PRN30 = fopen(".\\PhaseBias\\PRN30.dat", "w+"))== NULL) {
-          fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN30.dat");
+   if ((PRN30 = fopen("./PhaseBias/PRN30.dat", "w+"))== NULL) {
+          fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN30.dat");
           exit (-1);
    }//if
-   if ((PRN31 = fopen(".\\PhaseBias\\PRN31.dat", "w+"))== NULL) {
-          fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN31.dat");
+   if ((PRN31 = fopen("./PhaseBias/PRN31.dat", "w+"))== NULL) {
+          fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN31.dat");
           exit (-1);
    }//if
-   if ((PRN32 = fopen(".\\PhaseBias\\PRN32.dat", "w+"))== NULL) {
-          fprintf(stderr, "Cannot open output file %s.\n",".\\PhaseBias\\PRN32.dat");
+   if ((PRN32 = fopen("./PhaseBias/PRN32.dat", "w+"))== NULL) {
+          fprintf(stderr, "Cannot open output file %s.\n","./PhaseBias/PRN32.dat");
           exit (-1);
    }//if
 }
