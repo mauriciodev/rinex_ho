@@ -583,6 +583,12 @@ bool PRNBlock::setSatellitePRN(unsigned short input)
   }
 }
 
+bool PRNBlock::setSatelliteCode(char input) {
+    //should check if it's a real satCode
+    satCode=input;
+    return true;
+}
+
 bool PRNBlock::setTocYear(unsigned short input)
 {
   if( input >= 1980 && input <= 2079)
@@ -722,6 +728,7 @@ bool PRNBlock::setSpare2(double input){ spare2 = input; return true; }
 
 // Selectors
 unsigned short PRNBlock::getSatellitePRN(){ return satellitePRN; }
+char           PRNBlock::getSatelliteCode() { return satCode; }
 unsigned short PRNBlock::getTocYear(){ return tocYear; }
 unsigned short PRNBlock::getTocMonth(){ return tocMonth; }
 unsigned short PRNBlock::getTocDay(){ return tocDay; }
@@ -1506,7 +1513,7 @@ bool RinexFile::setRinexHeaderImage(list<HeaderRecord> input)
 
 bool RinexFile::setFormatVersion(float input)
 {
-   if( input > 0.99  &&  input < 2.11 )
+   if( input > 0.99  &&  input < 3.05 )
    {
     formatVersion = input;
     return true;
@@ -1695,7 +1702,7 @@ void RinexFile::readFileTypeAndProgramName()
          }
      }
 
-     if( inputRec.find( "END OF HEADER" ) == 60 )
+     if( (int)inputRec.find( "END OF HEADER" ) == 60 )
      {
        endOfHeaderFound = true;
        break;
@@ -1813,7 +1820,7 @@ bool RinexFile::validFirstLine(string &recordReadIn)
          temp = inputRec.substr( 0, 9 );
          if( getDouble(temp, tempD) )
            formatVersion = tempD;
-	 if( formatVersion < 1.0 || formatVersion > 2.11 )
+     if( formatVersion < 1.0 || formatVersion > 3.05 )
          {
 	   tempStream << "On line #" << getNumberLinesRead() << ":"
            << endl << inputRec << endl
@@ -2369,6 +2376,12 @@ bool RinexObsFile::setSatObsTypeListElement(ObsCountForPRN input, int i)
        return true;
 }
 
+bool RinexObsFile::addSatObsCodeListElement(string observable, char sysCode)
+{
+       satObsCodeList[sysCode].push_back(observable);
+       return true;
+}
+
 bool RinexObsFile::setNextSat(unsigned short input)
 {
        nextSat = input;
@@ -2568,7 +2581,7 @@ unsigned short RinexObsFile::readHeader()
    // read all Header lines from line 2 until the end of header
    while( !endOfHeaderFound )
    {
-     if( !getline( inputStream, inputRec, '\n') )
+     if( !getline( inputStream, inputRec) )
      {
        // Error reading a header line of the OBS File
        tempStream << "Error reading a header line of file:" << endl
@@ -2603,8 +2616,7 @@ unsigned short RinexObsFile::readHeader()
      {
        headerRec.SetHeaderRecord( inputRec );
        rinexHeaderImage.appendHeaderRecord( headerRec );
-       if( inputRec.find( "END OF HEADER" ) == 60 )
-       {
+       if ( ((int)inputRec.find( "END OF HEADER" )) >0 ) {
          endOfHeaderFound = true;
          break;
        }
@@ -2660,6 +2672,8 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
    double      distance;
    string      temp;
    string      warningString;
+   static char sysCode=' '; //I must remember the syscode between sequential line reads
+   vector<string> parts;
    unsigned short  L1_fac, L2_fac, num_sat;
 
    enum { VersionRec,   PgmRunByRec,     CommentRec,     MarkerNameRec,
@@ -2881,6 +2895,19 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
         return true;
       }
+      else if ( inputRec.find( "SYS / # / OBS TYPES" ) >0 ) {
+          headerRecs[ ObsNumTypesRec ].numberPresent++;
+          string sub=inputRec.substr(0,inputRec.find("SYS"));
+          parts= splitString(sub);
+          if (inputRec[0]!=' ')  { //new system
+              sysCode=inputRec[0];
+              parts.erase(parts.begin(),parts.begin()+2);
+          }
+          // else add to the current system
+          for (auto part: parts) {
+              addSatObsCodeListElement(part,sysCode);
+          }
+      }
       else if ( inputRec.find( "INTERVAL" ) == 60 )
       {
          headerRecs[ IntervalRec ].numberPresent++;
@@ -2924,7 +2951,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
          return true;
       }
-      else if ( inputRec.find( "TIME OF FIRST OBS" ) == 60 )
+      else if ( ((int)inputRec.find( "TIME OF FIRST OBS" )) >0 )
       {
          headerRecs[ FirstObsTimeRec ].numberPresent++;
 
@@ -3115,7 +3142,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          nextSat++;
          return true;
       }
-      else if ( inputRec.find( "END OF HEADER" ) == 60 )
+      else if ( ((int)inputRec.find( "END OF HEADER" ))>0)
       {
          headerRecs[ EndHeaderRec ].numberPresent++;
 	 return true;
@@ -4304,6 +4331,10 @@ unsigned short RinexNavFile::readPRNBlock( PRNBlock &prnBlock )
    temp = inputRec.substr( 0, 2 );
    if( getLong(temp, tempL) )
      tempUS = static_cast< unsigned short >( tempL );
+
+   //setting the satellite code from the entire file, because rinex 2 describes one system per file. For compatibility purposes
+   prnBlock.setSatelliteCode(this->getSatSystem());
+
    if( !prnBlock.setSatellitePRN(tempUS) )
    {
       tempStream << "On line #" << getNumberLinesRead() << ":"
@@ -4611,6 +4642,352 @@ unsigned short RinexNavFile::readPRNBlock( PRNBlock &prnBlock )
      prnBlock.setSpare2( tempD );
 
    return 1;
+}
+
+unsigned short RinexNavFile::readPRNBlockV3(PRNBlock &prnBlock)
+{
+    unsigned short tempUS, tyear;
+    string         inputRec;
+    size_t         l;
+    string         temp;
+    string         working;
+    long           tempL;
+    double         tempD;
+    string BlankString("                                        ");
+    BlankString.append("                                        ");
+
+ // Read epoch "time-tag" record.
+
+    if ( !getline( inputStream, inputRec, '\n') )
+    {
+       return 0;   // EOF encountered
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 1, 2 );
+    if( getLong(temp, tempL) )
+      tempUS = static_cast< unsigned short >( tempL );
+
+    //setting the satellite code from the entire file, because rinex 2 describes one system per file. For compatibility purposes
+    prnBlock.setSatelliteCode(inputRec[0]);
+
+    if( !prnBlock.setSatellitePRN(tempUS) )
+    {
+       tempStream << "On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  an invalid Satellite PRN was found: " << temp << "." << endl;
+       appendToWarningMessages( tempStream.str() );
+    }
+    //skip if invalid
+    if ( prnBlock.getSatelliteCode()=='S' ) {
+        getline( inputStream, inputRec, '\n');
+        getline( inputStream, inputRec, '\n');
+        getline( inputStream, inputRec, '\n');
+        return 0;
+    }
+
+    temp = inputRec.substr( 4, 4 );
+    if( getLong(temp, tempL) )
+      tyear = static_cast< unsigned short >( tempL );
+    if( tyear >= 80 && tyear <= 99 )
+       tyear = tyear + 1900;
+    if( tyear <=79 ) // between 00 and 79
+       tyear = tyear + 2000;
+    if( !prnBlock.setTocYear(tyear) )
+    {
+       tempStream << "On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  an invalid TOC year was found: " << temp << "." << endl;
+       appendToWarningMessages( tempStream.str() );
+    }
+
+    temp = inputRec.substr( 9, 2 );
+    if( getLong(temp, tempL) )
+      tempUS = static_cast< unsigned short >( tempL );
+    if( !prnBlock.setTocMonth(tempUS) )
+    {
+       tempStream << "On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  an invalid TOC month was found: " << temp << "." << endl;
+       appendToWarningMessages( tempStream.str() );
+    }
+
+    temp = inputRec.substr( 12, 2 );
+    if( getLong(temp, tempL) )
+      tempUS = static_cast< unsigned short >( tempL );
+    if( !prnBlock.setTocDay(tempUS) )
+    {
+       tempStream << "On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  an invalid TOC day was found: " << temp << "." << endl;
+       appendToWarningMessages( tempStream.str() );
+    }
+
+    temp = inputRec.substr( 15, 2 );
+    if( getLong(temp, tempL) )
+      tempUS = static_cast< unsigned short >( tempL );
+    if( !prnBlock.setTocHour(tempUS)  )
+    {
+       tempStream << "On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  an invalid TOC hour was found: " << temp << "." << endl;
+       appendToWarningMessages( tempStream.str() );
+    }
+
+    temp = inputRec.substr( 18, 2 );
+    if( getLong(temp, tempL) )
+      tempUS = static_cast< unsigned short >( tempL );
+    if( !prnBlock.setTocMin(tempUS)  )
+    {
+       tempStream << "On line #" << getNumberLinesRead() << ":"
+      << endl << inputRec << endl
+       << "  and invalid TOC minute was found: " << temp << "." << endl;
+       appendToWarningMessages( tempStream.str() );
+    }
+
+    temp = inputRec.substr( 21, 2 );
+    if( getDouble(temp, tempD) )
+    {
+      if( !prnBlock.setTocSec(tempD) )
+      {
+       tempStream << "On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  an invalid TOC second was found: " << temp << "." << endl;
+       appendToWarningMessages( tempStream.str() );
+      }
+    }
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setClockBias( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setClockDrift( tempD ); //this is not the same for glonass
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setClockDriftRate( tempD ); //this is not the same for glonass
+
+
+ // Read the first line after the PRN number and time tag
+
+    if (  !getline( inputStream, inputRec, '\n') )
+    {
+       tempStream << "Warning! On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  error reading the first data line of a PRN Block." << endl;
+       appendToWarningMessages( tempStream.str() );
+       return 0;
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 4, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setIode( tempD );
+
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setCrs( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setDeltan( tempD );
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setMo( tempD );
+
+
+ // Read the 2nd line after the PRN number and time tag
+
+    if (  !getline( inputStream, inputRec, '\n') )
+    {
+       tempStream << "Warning! On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  error reading the second data line of a PRN Block: " << endl;
+       appendToWarningMessages( tempStream.str() );
+       return 0;
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 4, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setCuc( tempD );
+
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setEccen( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setCus( tempD );
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setSqrtA( tempD );
+
+
+ // Read the 3rd line after the PRN number and time tag
+
+    if ( !getline( inputStream, inputRec, '\n') )
+    {
+       tempStream << "Warning! On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  error reading the third data line of a PRN Block." << endl;
+       appendToWarningMessages( tempStream.str() );
+       return 0;
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 4, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setToe( tempD );
+
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setCic( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setBigOmega( tempD );
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setCis( tempD );
+
+
+ // Read the 4th line after the PRN number and time tag
+
+    if ( !getline( inputStream, inputRec, '\n') )
+    {
+       tempStream << "Warning! On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  error reading the fourth data line of a PRN Block." << endl;
+       appendToWarningMessages( tempStream.str() );
+       return 0;
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 4, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setIo( tempD );
+
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setCrc( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setLilOmega( tempD );
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setBigOmegaDot( tempD );
+
+
+
+ // Read the 5th line after the PRN number and time tag
+
+    if ( !getline( inputStream, inputRec, '\n') )
+    {
+       tempStream << "Warning! On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  error reading the fifth data line of a PRN Block."  << endl;
+       appendToWarningMessages( tempStream.str() );
+       return 0;
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 4, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setIdot( tempD );
+
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setCodesOnL2( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setToeGPSWeek( tempD );
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setPDataFlagL2( tempD );
+
+
+ // Read the 6th line after the PRN number and time tag
+
+    if ( !getline( inputStream, inputRec, '\n') )
+    {
+       tempStream << "Warning ! On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  error reading the sixth data line of a PRN Block."  << endl;
+       appendToWarningMessages( tempStream.str() );
+       return 0;
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 4, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setSvAccur( tempD );
+
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setSvHealth( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setTgd( tempD );
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setIodc( tempD );
+
+ // Read the 7th line after the PRN number and time tag
+
+    if ( !getline( inputStream, inputRec, '\n') )
+    {
+       tempStream << "Warning! On line #" << getNumberLinesRead() << ":"
+       << endl << inputRec << endl
+       << "  error reading the seventh data line of a PRN Block."  << endl;
+       appendToWarningMessages( tempStream.str() );
+       return 0;
+    }
+    incrementNumberLinesRead(1);
+    replace( inputRec.begin(), inputRec.end(), 'D', 'E');
+    //makeRecordLength80(inputRec);
+
+    temp = inputRec.substr( 4, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setTransmTime( tempD );
+
+    temp = inputRec.substr( 23, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setFitInterval( tempD );
+
+    temp = inputRec.substr( 42, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setSpare1( tempD );
+
+    temp = inputRec.substr( 61, 19);
+    if( getDouble(temp, tempD) )
+      prnBlock.setSpare2( tempD );
+
+    return 1;
 }
 
 //Selectors
@@ -7274,5 +7651,19 @@ string RinexReadingException::getMessage()
     return( ErrorMessage );
 }
 
+std::vector<double> strings2double (std::vector<std::string> sl) {
+    //vector<string> a = {"1.2","3.4","0.5","200.7"};
+    std::vector<double> b;
+    for_each(sl.begin(), sl.end(), [&b](const std::string &ele) { b.push_back(stod(ele)); });
+    return b;
+}
+
+std::vector<std::string> splitString(std::string s){
+    std::vector<std::string> result;
+    std::istringstream iss(s);
+    for(std::string s; iss >> s; )
+        result.push_back(s);
+    return result;
+}
 
 } // namespace NGSrinex

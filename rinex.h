@@ -38,6 +38,8 @@
 #define DATETIME_H_
 #endif
 
+#include <map>
+#include <vector>
 
 namespace NGSrinex {
 
@@ -48,11 +50,10 @@ using namespace NGSdatetime;
 #if defined(_WIN32)
 
 #else
-    const int LONG_MAX = 10000;
-    const int LONG_MIN = 100;
+#include <limits.h>
 #endif
 
-   const unsigned short   MAXOBSHEADERRECTYPES = 20;
+   const unsigned short   MAXOBSHEADERRECTYPES = 500;
    const unsigned short   MAXNAVHEADERRECTYPES =  8;
    const unsigned short   MAXGLONAVHEADERRECTYPES = 6;
    const unsigned short   MAXGEONAVHEADERRECTYPES = 6;
@@ -64,7 +65,7 @@ using namespace NGSdatetime;
    const unsigned short   NUMREQRMETHEADERREC  =  7;
    const unsigned short   NUMREQRCLKHEADERREC  =  4;
 
-   const unsigned short   MAXPRNID = 36;
+   const unsigned short   MAXPRNID = 99;
    const unsigned short   MAXGEOSTATIONARYID = 99;
    const unsigned short   MAXSATPEREPOCH = 32;
    const unsigned short   RINEXRECSIZE = 83;   // 80 cols plus \r \n etc.
@@ -170,7 +171,7 @@ using namespace NGSdatetime;
           obsList[i].sigStrength = 0;
         }
       };
-      char              satCode;     // G=GPS,R=GLONASS,S=GEOSTATIONARY,T=NNSS.
+      char              satCode;     // G=GPS,R=GLONASS,S=GEOSTATIONARY,T=NNSS. E=GALILEO, C=BEIDOU, J=QZSS, I=IRNSS
       unsigned short    satNum;      // Satellite number.
       ObsSet            obsList[ MAXOBSTYPES ];
    };
@@ -351,6 +352,7 @@ using namespace NGSdatetime;
 
        //Initializers
        bool  setSatellitePRN(unsigned short  input);
+       bool  setSatelliteCode(char  input);
        bool  setTocYear(unsigned short  input);
        bool  setTocMonth(unsigned short  input);
        bool  setTocDay(unsigned short  input);
@@ -398,6 +400,7 @@ using namespace NGSdatetime;
 
        //Selectors
        unsigned short  getSatellitePRN();
+       char            getSatelliteCode();
        unsigned short  getTocYear();
        unsigned short  getTocMonth();
        unsigned short  getTocDay();
@@ -445,6 +448,7 @@ using namespace NGSdatetime;
 
      private:
        unsigned short    satellitePRN;
+       char              satCode; // G=GPS,R=GLONASS,S=GEOSTATIONARY,T=NNSS. E=GALILEO, C=BEIDOU, J=QZSS, I=IRNSS
        unsigned short    tocYear;
        unsigned short    tocMonth;
        unsigned short    tocDay;
@@ -836,6 +840,7 @@ using namespace NGSdatetime;
     bool setRcvrClockApplied(unsigned short input);
     bool setNumberOfSat(unsigned short input);
     bool setSatObsTypeListElement(ObsCountForPRN input, int i);
+    bool addSatObsCodeListElement(string observable, char sysCode);
     bool setNextSat(unsigned short input);
 
     void incrementNumberObsEpochs( unsigned int n );
@@ -951,6 +956,7 @@ using namespace NGSdatetime;
                                                     //  - # OF SATELLITES
 
       ObsCountForPRN    satObsTypeList[MAXPRNID];
+      map<char,vector<string>>  satObsCodeList; //satcodes -> obs position -> obsCode (ex.: C1C)
 
       unsigned short    nextSat;            // index for satObsTypeList
 
@@ -996,6 +1002,7 @@ using namespace NGSdatetime;
     void incrementNumberPRNBlocks(unsigned int n);
     unsigned short readHeader();
     unsigned short readPRNBlock(PRNBlock &prnBlock);
+    unsigned short readPRNBlockV3(PRNBlock &prnBlock);
 
     // Selectors
     double               getA0();
@@ -1332,6 +1339,11 @@ using namespace NGSdatetime;
 	 string getMessage();
    };
 
+
+   std::vector<std::string> splitString(std::string s);
+   std::vector<double> strings2double(std::vector<std::string> sl);
 } // namespace NGSrinex
+
+
 
 #endif
