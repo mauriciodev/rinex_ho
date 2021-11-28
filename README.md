@@ -28,9 +28,9 @@ make -j4
 Download the source via Git-cola. \
 Open QtCreator and open the CMakeLists.txt from Rinex_Ho source folder. \
 Choose "Desktop Qt MinGW" on the Projets tab, under Build & Run. \
-Go to the "Edit" tab, right click on Rinex_Ho project, press "Run CMake". This should prepare the Makefile.\
-On the same menu, press "Build".\
-To debug, use the Debug menu.\
+Go to the "Edit" tab, right click on Rinex_Ho project, press "Run CMake". This should prepare the Makefile. \
+On the same menu, press "Build". \
+To debug, use the Debug menu.
 
 
 
