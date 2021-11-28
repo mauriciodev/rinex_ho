@@ -3,18 +3,25 @@
 ## Requirements
 git, cmake, g++/mingw
 
-On Ubuntu: sudo apt-get install g++ cmake build-essential libncurses-dev wget unzip zip gzip
+### On Ubuntu
+  sudo apt-get install g++ cmake build-essential libncurses-dev wget unzip zip gzip
+
+### On windows, install these packages: 
+
+  https://cmake.org/download/
+  
+  It's recommended to install a C++ IDE with a compiler. Ex.: [Qt Creator](https://www.qt.io/download-qt-installer)
+  
+  It's recommended to install a Git client. Ex.: [GitHub Desktop](https://desktop.github.com/)
 
 ## Download from GitHub
-git clone git@github.com:mauriciodev/rt_ppp.git
+git clone git@github.com:mauriciodev/rinex_ho.git
 
 ## Or download and unzip: 
-https://github.com/mauriciodev/rt_ppp/archive/refs/heads/main.zip
-
-unzip Binary.zip on rt_ppp folder
+https://github.com/mauriciodev/rinex_ho/archive/refs/heads/main.zip
 
 ## Installation from source
-cd rt_ppp
+cd rinex_ho
 
 mkdir bin
 
@@ -28,13 +35,3 @@ make -j4
 ./rt_ppp OBS_DATA/2021/SJRP/10/sjrp0101.21o Config_file/RTPPP_Config_SJRP_2021.inp
 
 
-
-## Installation with Docker 
-### Install docker
-https://docs.docker.com/engine/install/ubuntu/
-
-### Building the container (run on rt_ppp folder)
-docker build . -t rt_ppp
-
-### Testing with Docker
-docker run -v "$PWD"/OBS_DATA/2021/SJRP/10/sjrp0101.21o:/opt/input.xxo -v "$PWD"/OUT_DIR:/opt/rt_ppp/OUT_DIR/ -it rt_ppp ./rt_ppp /opt/input.xxo Config_file/RTPPP_Config_SJRP_2021.inp
