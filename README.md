@@ -32,6 +32,7 @@ cmake ..
 make -j4
 
 ## Testing (on the bin directory)
-./rt_ppp OBS_DATA/2021/SJRP/10/sjrp0101.21o Config_file/RTPPP_Config_SJRP_2021.inp
+./rinex_ho
+
 
 
