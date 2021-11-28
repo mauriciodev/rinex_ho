@@ -12,7 +12,7 @@ git, cmake, g++/mingw
   
   It's recommended to install a C++ IDE with a compiler. Ex.: [Qt Creator](https://www.qt.io/download-qt-installer)
   
-  It's recommended to install a Git client. Ex.: [GitHub Desktop](https://desktop.github.com/)
+  It's recommended to install a Git client. Ex.: [GitCola](https://git-cola.github.io/downloads.html), [GitHub Desktop](https://desktop.github.com/)
 
 ## Download from GitHub
 git clone git@github.com:mauriciodev/rinex_ho.git
