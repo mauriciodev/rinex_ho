@@ -79,6 +79,7 @@ namespace NGSrinex {
 using namespace std;
 
 
+
 //===================== ObsEpoch Class ========================================
 
 
@@ -150,7 +151,7 @@ bool ObsEpoch::setSatListElement(SatObsAtEpoch input,
 
    // Set the satCode member
    if( input.satCode == 'G' || input.satCode == 'S' || input.satCode == ' ' ||
-       input.satCode == 'R' )
+       input.satCode == 'R' || input.satCode == 'E' || input.satCode == 'C')
    {
      satList[ i ].satCode = input.satCode;
    }
@@ -2517,7 +2518,7 @@ void RinexObsFile::initializeData()
    headerRecs[ 9].required = true;
 
    headerRecs[10].recID = "WAVELENGTH FACT L1/2";
-   headerRecs[10].required = true;
+   headerRecs[10].required = false;
 
    headerRecs[11].recID = "# / TYPES OF OBSERV";
    headerRecs[11].required = true;
@@ -2688,7 +2689,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          headerRecs[ CommentRec ].numberPresent++;
          return true;
       }
-      else if ( inputRec.find( "PGM / RUN BY / DATE" ) == 60 )
+      else if ( inputRec.find( "PGM / RUN BY / DATE" )  != string::npos )
       {
          headerRecs[ PgmRunByRec ].numberPresent++;
 
@@ -2697,21 +2698,21 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          dateFileCreated = inputRec.substr( 40, 20 );
          return true;
       }
-      else if ( inputRec.find( "MARKER NAME" ) == 60 )
+      else if ( inputRec.find( "MARKER NAME" )  != string::npos )
       {
          headerRecs[ MarkerNameRec ].numberPresent++;
 
          markerName = inputRec.substr( 0, 60 );
          return true;
       }
-      else if ( inputRec.find( "MARKER NUMBER" ) == 60 )
+      else if ( inputRec.find( "MARKER NUMBER" )  != string::npos )
       {
          headerRecs[ MarkerNumRec ].numberPresent++;
 
          markerNumber = inputRec.substr( 0, 20 );
          return true;
       }
-      else if ( inputRec.find( "OBSERVER / AGENCY" ) == 60 )
+      else if ( inputRec.find( "OBSERVER / AGENCY" )  != string::npos )
       {
          headerRecs[ ObserverRec ].numberPresent++;
 
@@ -2719,7 +2720,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          observerAgency = inputRec.substr( 20, 40 );
          return true;
       }
-      else if ( inputRec.find( "REC # / TYPE / VERS" ) == 60 )
+      else if ( inputRec.find( "REC # / TYPE / VERS" )  != string::npos )
       {
          headerRecs[ ReceiverRec ].numberPresent++;
 
@@ -2728,7 +2729,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          receiverFirmwareVersion = inputRec.substr( 40, 20 );
          return true;
       }
-      else if ( inputRec.find( "ANT # / TYPE" ) == 60 )
+      else if ( inputRec.find( "ANT # / TYPE" )  != string::npos )
       {
          headerRecs[ AntennaRec ].numberPresent++;
 
@@ -2736,7 +2737,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          antennaType   = inputRec.substr( 20, 20 );
          return true;
       }
-      else if ( inputRec.find( "APPROX POSITION XYZ" ) == 60 )
+      else if ( inputRec.find( "APPROX POSITION XYZ" )  != string::npos )
       {
          headerRecs[ ApproxPosRec ].numberPresent++;
 
@@ -2763,7 +2764,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
          return true;
       }
-      else if ( inputRec.find( "ANTENNA: DELTA H/E/N" ) == 60 )
+      else if ( inputRec.find( "ANTENNA: DELTA H/E/N" )  != string::npos )
       {
          headerRecs[ AntennaDeltaRec ].numberPresent++;
 
@@ -2778,7 +2779,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
            antennaDeltaN = tempD;
          return true;
       }
-      else if ( inputRec.find( "WAVELENGTH FACT L1/2" ) == 60 )
+      else if ( inputRec.find( "WAVELENGTH FACT L1/2" )  != string::npos )
       {
          string    temp;
          temp = inputRec.substr( 0, 6 );
@@ -2834,7 +2835,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
          return true;
       }
-      else if ( inputRec.find( "# / TYPES OF OBSERV" ) == 60 )
+      else if ( inputRec.find( "# / TYPES OF OBSERV" )  != string::npos )
       {
          string         obsType;
          string         temp;
@@ -2884,6 +2885,14 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
         else if ( obsType.find( "C5" ) != string::npos ) obsTypeList[ CounterobsType ] = C5;
         else if ( obsType.find( "D5" ) != string::npos ) obsTypeList[ CounterobsType ] = D5;
         else if ( obsType.find( "S5" ) != string::npos ) obsTypeList[ CounterobsType ] = S5;
+        else if ( obsType.find( "L7" ) != string::npos ) obsTypeList[ CounterobsType ] = L5;
+        else if ( obsType.find( "C7" ) != string::npos ) obsTypeList[ CounterobsType ] = C5;
+        else if ( obsType.find( "D7" ) != string::npos ) obsTypeList[ CounterobsType ] = D5;
+        else if ( obsType.find( "S7" ) != string::npos ) obsTypeList[ CounterobsType ] = S5;
+        else if ( obsType.find( "L8" ) != string::npos ) obsTypeList[ CounterobsType ] = L5;
+        else if ( obsType.find( "C8" ) != string::npos ) obsTypeList[ CounterobsType ] = C5;
+        else if ( obsType.find( "D8" ) != string::npos ) obsTypeList[ CounterobsType ] = D5;
+        else if ( obsType.find( "S8" ) != string::npos ) obsTypeList[ CounterobsType ] = S5;
            else
            {
 	     tempStream << "On line #" << getNumberLinesRead() << ":"
@@ -2895,7 +2904,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
         return true;
       }
-      else if ( inputRec.find( "SYS / # / OBS TYPES" ) >0 ) {
+      else if ( inputRec.find( "SYS / # / OBS TYPES" ) != string::npos) {
           headerRecs[ ObsNumTypesRec ].numberPresent++;
           string sub=inputRec.substr(0,inputRec.find("SYS"));
           parts= splitString(sub);
@@ -2908,7 +2917,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
               addSatObsCodeListElement(part,sysCode);
           }
       }
-      else if ( inputRec.find( "INTERVAL" ) == 60 )
+      else if ( inputRec.find( "INTERVAL" )  != string::npos)
       {
          headerRecs[ IntervalRec ].numberPresent++;
 
@@ -2924,7 +2933,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
          return true;
       }
-      else if ( inputRec.find( "LEAP SECONDS" ) == 60 )
+      else if ( inputRec.find( "LEAP SECONDS" )  != string::npos)
       {
          headerRecs[ LeapSecRec ].numberPresent++;
 
@@ -2933,7 +2942,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
            numberLeapSec = static_cast< unsigned short>( tempL );
          return true;
       }
-      else if ( inputRec.find( "RCV CLOCK OFFS APPL" ) == 60 )
+      else if ( inputRec.find( "RCV CLOCK OFFS APPL" )  != string::npos)
       {
          headerRecs[ RcvClkApplRec ].numberPresent++;
 
@@ -2951,7 +2960,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
          return true;
       }
-      else if ( ((int)inputRec.find( "TIME OF FIRST OBS" )) >0 )
+      else if ( ((int)inputRec.find( "TIME OF FIRST OBS" ))  != string::npos)
       {
          headerRecs[ FirstObsTimeRec ].numberPresent++;
 
@@ -3022,7 +3031,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          return true;
 
       }
-      else if ( inputRec.find( "TIME OF LAST OBS" ) == 60 )
+      else if ( inputRec.find( "TIME OF LAST OBS" )  != string::npos)
       {
          headerRecs[ LastObsTimeRec ].numberPresent++;
 
@@ -3092,7 +3101,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          }
          return true;
       }
-      else if ( inputRec.find( "# OF SATELLITES" ) == 60 )
+      else if ( inputRec.find( "# OF SATELLITES" )  != string::npos)
       {
          headerRecs[ NumOfSatRec ].numberPresent++;
 
@@ -3101,7 +3110,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
            numberOfSat = static_cast< unsigned short>( tempL );
          return true;
       }
-      else if ( inputRec.find( "PRN / # OF OBS" ) == 60 )
+      else if ( inputRec.find( "PRN / # OF OBS" )  != string::npos)
       {
          headerRecs[ PRNRec ].numberPresent++;
 
@@ -3142,7 +3151,7 @@ bool RinexObsFile::validHeaderRecord(string inputRec)
          nextSat++;
          return true;
       }
-      else if ( ((int)inputRec.find( "END OF HEADER" ))>0)
+      else if ( ((int)inputRec.find( "END OF HEADER" )) != string::npos)
       {
          headerRecs[ EndHeaderRec ].numberPresent++;
 	 return true;
@@ -3552,96 +3561,33 @@ if( inputEpoch.getEpochFlag() == 0 || inputEpoch.getEpochFlag() == 1 ||
      inputEpoch.setNumSat( 12 ); // reset numSat, try to skip to the next epoch
    }
 
-   if( inputEpoch.getNumSat() <= 12 )
-   {
-      for ( i = 0; i < inputEpoch.getNumSat(); i++ )
-      {
-        temp = inputRec.substr( (32 + i*3), 1 );
-        saveSatCode.append( temp );
-        temp = inputRec.substr( (32 + (i*3) + 1), 2 );
-        if( getLong(temp, tempL) )
-          saveSatNum[i] = static_cast< unsigned short >( tempL );
-      }
-   }
-   else
-   {
-      for ( i = 0; i < 12; i++ )
-      {
-        temp = inputRec.substr( (32 + i*3), 1 );
-        saveSatCode.append( temp );
-        temp = inputRec.substr( (32 + (i*3) + 1), 2 );
-        if( getLong(temp, tempL) )
-          saveSatNum[i] = static_cast< unsigned short >( tempL );
-      }
-      temp = inputRec;
-      if( !getline( inputStream, inputRec, '\n') )
-      {
-        // Error reading more than 12 PRNs following a EPOCH/SAT record
-        tempStream << "Error reading more than 12 PRNs after record: "
-        << temp << endl << "in file: " << getPathFilename() << endl;
-        appendToErrorMessages( tempStream.str() );
-
-        RinexReadingException  excep( tempStream.str() );
-        throw excep;
-      }
-      incrementNumberLinesRead(1);
-
-      //*****************Changed by Marques, H. A.****************************************
-      if(inputEpoch.getNumSat()<= 24) //Works weel until number of 24 (Marques, H. A.)
-      {
-           for (int  k = 12; k < inputEpoch.getNumSat(); k++ )
-           {
-                i = k - 12;
-                temp = inputRec.substr( (32 + i*3), 1 );
-                saveSatCode.append( temp );
-                temp = inputRec.substr( (32 + (i*3) + 1), 2 );
-
-                if( getLong(temp, tempL) )
-                  saveSatNum[k] = static_cast< unsigned short >( tempL );
-           }//for
-      }//if
-      else
-      {
-           for (int  k = 12; k < 24; k++ )
-           {
-                i = k - 12;
-                temp = inputRec.substr( (32 + i*3), 1 );
-                saveSatCode.append( temp );
-                temp = inputRec.substr( (32 + (i*3) + 1), 2 );
-
-                if( getLong(temp, tempL) )
-                  saveSatNum[k] = static_cast< unsigned short >( tempL );
-           }//for
-
-           //Read next line to account more than 24 satellites
-           temp = inputRec;
+   int satsRead=0,satsToRead=0;
+   //Begin Mauricio: New multi row sats
+   while (satsRead < inputEpoch.getNumSat()){
+       satsToRead=inputEpoch.getNumSat()-satsRead;
+       if (satsToRead>12) satsToRead=12;
+       for ( i = 0; i < satsToRead; i++ ) {
+           temp = inputRec.substr( (32 + i*3), 1 );
+           saveSatCode.append( temp );
+           temp = inputRec.substr( (32 + (i*3) + 1), 2 );
+           if( getLong(temp, tempL) )
+               saveSatNum[satsRead] = static_cast< unsigned short >( tempL );
+           satsRead++;
+       }
+       if (satsRead < inputEpoch.getNumSat()) {
            if( !getline( inputStream, inputRec, '\n') )
            {
-                // Error reading more than 12 PRNs following a EPOCH/SAT record
-                tempStream << "Error reading more than 12 PRNs after record: "
-                << temp << endl << "in file: " << getPathFilename() << endl;
-                appendToErrorMessages( tempStream.str() );
+             // Error reading more than 12 PRNs following a EPOCH/SAT record
+             tempStream << "Error reading more than 12 PRNs after record: "
+             << temp << endl << "in file: " << getPathFilename() << endl;
+             appendToErrorMessages( tempStream.str() );
 
-                RinexReadingException  excep( tempStream.str() );
-                throw excep;
+             RinexReadingException  excep( tempStream.str() );
+             throw excep;
            }
-
            incrementNumberLinesRead(1);
-
-           for (int  k = 24; k < inputEpoch.getNumSat(); k++ )
-           {
-                i = k - 24;
-                temp = inputRec.substr( (32 + i*3), 1 );
-                saveSatCode.append( temp );
-                temp = inputRec.substr( (32 + (i*3) + 1), 2 );
-
-                if( getLong(temp, tempL) )
-                  saveSatNum[k] = static_cast< unsigned short >( tempL );
-           }//for
-      }//else
-
-      //*****************Changed by Marques, H. A.****************************************
-   }//else
+       }
+   }//End Mauricio
 
    if( inputEpoch.getEpochFlag() == 6 )
    {
@@ -3668,9 +3614,10 @@ if( inputEpoch.getEpochFlag() == 0 || inputEpoch.getEpochFlag() == 1 ||
      makeRecordLength80( working );
 
      if( inputEpoch.getEpochFlag() == 6 ) tempStream << working << endl;
-
-     if ( numObsTypes > 5 )
-     {
+     //Begin Mauricio: More multiline changes.
+     //Concatenate new lines until 5*lines>numbObsType
+     int linesRead=0;
+     while( linesRead*5 < numObsTypes ) {
          if( !getline( inputStream, inputRec, '\n') )
          {
            // Error reading observation/cycle slip records when #obs > 5
@@ -3684,24 +3631,9 @@ if( inputEpoch.getEpochFlag() == 0 || inputEpoch.getEpochFlag() == 1 ||
          incrementNumberLinesRead(1);
          makeRecordLength80( inputRec );
          working.append( inputRec );   // add second line to first line
+         linesRead++;
      }
-
-     if ( numObsTypes > 10 ) //Added by Marques, H. A.
-     {
-         if( !getline( inputStream, inputRec, '\n') )
-         {
-           // Error reading observation/cycle slip records when #obs > 5
-           tempStream << "Error reading data records when #obs > 5, in file:"
-           << endl << getPathFilename() << endl;
-           appendToErrorMessages( tempStream.str() );
-
-           RinexReadingException  excep( tempStream.str() );
-           throw excep;
-         }
-         incrementNumberLinesRead(1);
-         makeRecordLength80( inputRec );
-         working.append( inputRec );   // add third line to first line
-     }
+     //End Mauricio
 
      for ( j = 0; j < numObsTypes ; j++ )
       {
@@ -4116,7 +4048,7 @@ unsigned short RinexNavFile::readHeader()
      {
        headerRec.SetHeaderRecord( inputRec );
        rinexHeaderImage.appendHeaderRecord( headerRec );
-       if( inputRec.find( "END OF HEADER" ) == 60 ) endOfHeaderFound = true;
+       if( inputRec.find( "END OF HEADER" )  != string::npos) endOfHeaderFound = true;
        continue;  // go to read the next record
      }
 

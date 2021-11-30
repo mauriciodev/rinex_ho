@@ -40,6 +40,7 @@
 
 #include <map>
 #include <vector>
+#include <algorithm>
 
 namespace NGSrinex {
 
@@ -76,7 +77,9 @@ using namespace NGSdatetime;
 
    enum OBSTYPE { NOOBS = 0, L1 = 1, L2 = 2, C1 = 3, P1 = 4, P2 = 5,
                   C2 = 6, D1 = 7, D2 = 8, T1 = 9, T2= 10, S1 = 11, S2 = 12,
-                  L5 =13, C5 = 14, D5 = 15, S5 = 16  };
+                  L5 =13, C5 = 14, D5 = 15, S5 = 16,
+                  L7 =17, C7 = 18, D7 = 19, S7 = 20,
+                  L8 =21, C8 = 22, D8 = 23, S8 = 24};
 
    enum METTYPE { NOMET = 0, PR = 1, TD = 2, HR = 3,
                   ZW = 4, ZD = 5, ZT = 6 };
