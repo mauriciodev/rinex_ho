@@ -24,7 +24,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ASC1 DESTINATION ${CMAKE_CURRENT_BINARY_DI
 
 
 
-find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+#find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 #set(TS_FILES Rinex_ho2/Rinex_ho2_pt_BR.ts)
 #set(UI_SOURCES Rinex_ho2/main.cpp
