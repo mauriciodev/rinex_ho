@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(Rinex_ho2 LANGUAGES CXX C)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_EXE_LINKER_FLAGS " -static")
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
