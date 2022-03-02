@@ -1,5 +1,8 @@
 # rinex_ho
 
+# Google Colaboratory example:
+[Open notebook on Google Colab](https://colab.research.google.com/drive/1RpyO_5xuy44qs30U3xIRyYTYpcSjSvWu?usp=sharing)
+
 ## Requirements
 git, cmake, g++/mingw
 
