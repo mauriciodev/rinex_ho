@@ -1079,11 +1079,11 @@ int main(int argc, char* argv[]) {
 
                                         if(read_tec==2)
                                         {   //Store Slant TEC from GIM to be printed posteriori
-                                            TECM[prn] = static_cast< float > (VTEC)/cos(calc_iono.zl);
+                                            TECM[prn] = static_cast< float > (VTEC);
                                         }
                                         else //if(read_tec==0 || read_tec ==1 ||read_tec==3)
 			                            {   //Store Slant TEC computed from GNSS data to be printed posteriori
-                                            TECM[prn] = static_cast< float > (STEC);
+                                            TECM[prn] = static_cast< float > (STEC)*cos(calc_iono.zl);
 		                                }
                                     }//if save_file
                                 }//if(Ang_Dec > Mask_Ele)  //if elevation angle is greater than elevation mask
